@@ -64,10 +64,16 @@ jobs:
           (out / ".nojekyll").write_text("", encoding="utf-8")
           PY
           kill %1 || true
+          # Upload from a normal (non-hidden) folder: the upload action skips
+          # hidden paths like .vercel, which leaves deploy-pages with no artifact.
+          rm -rf site
+          cp -r .vercel/output/static site
+          ls -la site
+          test -s site/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .vercel/output/static
+          path: site
 
       - id: deployment
         uses: actions/deploy-pages@v4
