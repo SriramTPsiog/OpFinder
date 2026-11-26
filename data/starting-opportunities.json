@@ -1,0 +1,156 @@
+{
+  "reviewedOn": "2026-11-26",
+  "sources": {
+    "hku-ece": [
+      {
+        "title": "MSc(Eng) in Integrated Circuits and Electronic Systems (ICES)",
+        "kind": "program",
+        "field": "IC design",
+        "summary": "HKU lists September 2027 entry. The main round closes 4 January 2027 and the clearing round closes 9 April 2027, both at noon in Hong Kong.",
+        "url": "https://portal.hku.hk/tpg-admissions/programme-details?mode=0&programme=master-of-science-in-engineering-(integrated-circuits-and-electronic-systems)-engg",
+        "institution": "The University of Hong Kong",
+        "country": "Hong Kong"
+      },
+      {
+        "title": "MSc(Eng) in Electrical and Electronic Engineering (EEE) – General Stream",
+        "kind": "program",
+        "field": "Electronics",
+        "url": "https://portal.hku.hk/tpg-admissions/programme-details?mode=0&programme=master-of-science-in-engineering-(electrical-and-electronic-engineering)-general-stream-engg",
+        "institution": "The University of Hong Kong",
+        "country": "Hong Kong"
+      },
+      {
+        "title": "MSc(Eng) in Electrical and Electronic Engineering (EEE) – Power Engineering Stream",
+        "kind": "program",
+        "field": "Electronics",
+        "url": "https://portal.hku.hk/tpg-admissions/programme-details?mode=0&programme=master-of-science-in-engineering-(electrical-and-electronic-engineering)-power-engineering-stream-engg",
+        "institution": "The University of Hong Kong",
+        "country": "Hong Kong"
+      }
+    ],
+    "hku-mech": [
+      {
+        "title": "Microelectronics Science and Technology (MEST)",
+        "kind": "program",
+        "field": "Microelectronics",
+        "summary": "The curriculum combines microelectronics coursework with a 24-credit capstone project.",
+        "url": "https://mech.hku.hk/mest/",
+        "institution": "The University of Hong Kong",
+        "country": "Hong Kong"
+      }
+    ],
+    "southampton": [
+      {
+        "title": "Microelectronics Systems Design",
+        "kind": "program",
+        "field": "Microelectronics",
+        "summary": "The MSc covers analogue and digital IC design, with opportunities to work on system-on-chip and FPGA designs.",
+        "url": "https://www.southampton.ac.uk/courses/microelectronics-systems-design-masters-msc",
+        "institution": "University of Southampton",
+        "country": "United Kingdom"
+      },
+      {
+        "title": "Micro and Nanotechnology",
+        "kind": "program",
+        "field": "Nanotechnology",
+        "url": "https://www.southampton.ac.uk/courses/micro-nanotechnology-masters-msc",
+        "institution": "University of Southampton",
+        "country": "United Kingdom"
+      },
+      {
+        "title": "Electronic Engineering",
+        "kind": "program",
+        "field": "Electronics",
+        "url": "https://www.southampton.ac.uk/courses/electronic-engineering-masters-msc",
+        "institution": "University of Southampton",
+        "country": "United Kingdom"
+      },
+      {
+        "title": "Internet of Things",
+        "kind": "program",
+        "field": "Embedded systems",
+        "url": "https://www.southampton.ac.uk/courses/internet-of-things-masters-msc",
+        "institution": "University of Southampton",
+        "country": "United Kingdom"
+      }
+    ],
+    "kth-programmes": [
+      {
+        "title": "Embedded Systems",
+        "kind": "program",
+        "field": "Embedded systems",
+        "summary": "Study embedded computing, including digital design, ASICs, FPGAs and embedded software.",
+        "url": "https://www.kth.se/en/studies/master/embedded-systems",
+        "institution": "KTH Royal Institute of Technology",
+        "country": "Sweden"
+      },
+      {
+        "title": "Nanotechnology",
+        "kind": "program",
+        "field": "Nanotechnology",
+        "url": "https://www.kth.se/en/studies/master/nanotechnology",
+        "institution": "KTH Royal Institute of Technology",
+        "country": "Sweden"
+      },
+      {
+        "title": "Systems, Control and Robotics",
+        "kind": "program",
+        "field": "Control and signal processing",
+        "url": "https://www.kth.se/en/studies/master/systems-control-robotics",
+        "institution": "KTH Royal Institute of Technology",
+        "country": "Sweden"
+      },
+      {
+        "title": "Mechatronics",
+        "kind": "program",
+        "field": "Control and signal processing",
+        "url": "https://www.kth.se/en/studies/master/mechatronics",
+        "institution": "KTH Royal Institute of Technology",
+        "country": "Sweden"
+      }
+    ],
+    "kth-scholarships": [
+      {
+        "title": "KTH India Scholarship",
+        "kind": "scholarship",
+        "field": "Master’s funding",
+        "summary": "KTH gives 1 December 2026 as the opening date. The award covers tuition and includes a living allowance during the academic year.",
+        "url": "https://www.kth.se/en/studies/master/admissions/scholarships/kth-india-scholarship-1.422144",
+        "institution": "KTH Royal Institute of Technology",
+        "country": "Sweden",
+        "deadline": "2027-01-15"
+      },
+      {
+        "title": "KTH Scholarship",
+        "kind": "scholarship",
+        "field": "Master’s funding",
+        "summary": "The tuition scholarship takes applications from 1 December 2026. Apply separately for an eligible KTH master’s programme.",
+        "url": "https://www.kth.se/en/studies/master/admissions/scholarships/kth-scholarship-1.72827",
+        "institution": "KTH Royal Institute of Technology",
+        "country": "Sweden",
+        "deadline": "2027-01-15"
+      }
+    ],
+    "commonwealth": [
+      {
+        "title": "Commonwealth Shared Scholarships",
+        "kind": "scholarship",
+        "field": "Master’s funding",
+        "summary": "For approved UK master’s courses. The 2027/28 call gives a closing time of 16:00 GMT. Course admission requires a separate university application.",
+        "url": "https://cscuk.fcdo.gov.uk/scholarships/commonwealth-shared-scholarships-applications/",
+        "institution": "Commonwealth Scholarship Commission in the UK",
+        "country": "United Kingdom",
+        "deadline": "2026-12-08"
+      },
+      {
+        "title": "Commonwealth Master’s Scholarships",
+        "kind": "scholarship",
+        "field": "Master’s funding",
+        "summary": "The Commission reported the 2027/28 application round closed when reviewed on 26 November 2026.",
+        "url": "https://cscuk.fcdo.gov.uk/scholarships/commonwealth-masters-scholarships/",
+        "institution": "Commonwealth Scholarship Commission in the UK",
+        "country": "United Kingdom"
+      }
+    ]
+  }
+}

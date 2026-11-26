@@ -88,7 +88,7 @@ export const CATALOG: Opportunity[] = [
     window: "Applications usually open in the autumn for the following September.",
     months: [10, 11, 12, 1, 2, 3, 4, 5, 6],
     funding: "Self-funded plus limited university awards. Chevening and Commonwealth are separate national routes.",
-    url: "https://www.southampton.ac.uk/study/courses",
+    url: "https://www.southampton.ac.uk/courses/microelectronics-systems-design-masters-msc",
     fit: 93,
     why: "Southampton is one of the few UK schools with a full microelectronics stack (design, devices, cleanroom-adjacent research). Strong industry pull toward the UK compound and silicon scene.",
     risks: "Grade minimums are often a 2:1. Spell the percentage equivalent of 7.61 in the SOP and attach transcripts early.",

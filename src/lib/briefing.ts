@@ -62,3 +62,5 @@ export const writeBriefing = createServerFn({ method: "POST" })
     if (!text) return { ok: false as const, error: "Empty briefing." };
     return { ok: true as const, text };
   });
+
+export const briefingAvailable = createServerFn({ method: "GET" }).handler(() => Boolean(process.env.XAI_API_KEY));

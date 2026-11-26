@@ -1,72 +1,69 @@
-name: Host Wafer Desk
+name: Publish Wafer Desk
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "47 2 * * *"
 
 permissions:
   contents: read
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: wafer-pages
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 14
+    permissions:
+      contents: read
+      pages: read
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
-          cache: npm
-
-      # package-lock.json is out of sync with package.json, so `npm ci` fails.
-      - name: Install and build
-        run: |
-          npm install --no-audit --no-fund
-          npm run build
-
-      - name: Render a static page for GitHub Pages
+          node-version: "24"
+      - name: Get Pages address
+        id: pages
+        uses: actions/configure-pages@v6
+      - name: Restore previous scan
+        uses: actions/cache/restore@v5
+        with:
+          path: .feed-cache/opportunities.json
+          key: wafer-feed-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: wafer-feed-v1-
+      - name: Recover the published feed if the cache is empty
         env:
-          REPO_NAME: ${{ github.event.repository.name }}
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
-          # `vite` is only on PATH inside npm scripts, so go through `npm run`.
-          npm run preview -- --host 127.0.0.1 --port 4173 > /tmp/preview.log 2>&1 &
-          for i in $(seq 1 60); do
-            curl -sf -o /tmp/index.html http://127.0.0.1:4173/ && break
-            sleep 0.5
-          done
-          test -s /tmp/index.html || { cat /tmp/preview.log; exit 1; }
-          python3 - << 'PY'
-          import os, re
-          from pathlib import Path
-          # Project Pages are served from /<repo>/, not the domain root.
-          base = "/" + os.environ["REPO_NAME"] + "/"
-          html = Path("/tmp/index.html").read_text(encoding="utf-8")
-          # Covers <link href>, <script src> AND the "/assets/..." strings inside
-          # the inline TanStack Start bootstrap script.
-          html = re.sub(
-              r'(["\'])/(assets/|__grok/|favicon\.svg)',
-              lambda m: m.group(1) + base + m.group(2),
-              html,
-          )
-          out = Path(".vercel/output/static")
-          (out / "index.html").write_text(html, encoding="utf-8")
-          (out / "404.html").write_text(html, encoding="utf-8")
-          (out / ".nojekyll").write_text("", encoding="utf-8")
-          PY
-          kill %1 || true
-          # Upload from a normal (non-hidden) folder: the upload action skips
-          # hidden paths like .vercel, which leaves deploy-pages with no artifact.
-          rm -rf site
-          cp -r .vercel/output/static site
-          ls -la site
-          test -s site/index.html
-
-      - name: Upload the Pages site
+          mkdir -p .feed-cache
+          if [ ! -s .feed-cache/opportunities.json ]; then
+            if curl --fail --silent --location --max-time 18 "$BASE_URL/data/opportunities.json" -o .feed-cache/published.json; then
+              mv .feed-cache/published.json .feed-cache/opportunities.json
+            fi
+          fi
+      - name: Check adapters and tracker
+        run: |
+          python3 -m unittest discover -s tests
+          node --test tests/desk.test.mjs
+      - name: Scan official sources
+        run: python3 scripts/refresh_opportunities.py --output .feed-cache/opportunities.json
+      - name: Preserve snapshot
+        uses: actions/cache/save@v5
+        with:
+          path: .feed-cache/opportunities.json
+          key: wafer-feed-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Build Pages site
+        run: node scripts/build-pages.mjs .feed-cache/opportunities.json
+      - name: Check desktop and mobile interactions
+        run: |
+          python3 -m venv "$RUNNER_TEMP/wafer-tests"
+          "$RUNNER_TEMP/wafer-tests/bin/pip" -q install "selenium>=4.25,<5"
+          "$RUNNER_TEMP/wafer-tests/bin/python" tests/pages_smoke.py
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
           path: site
@@ -74,6 +71,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     permissions:
       actions: read
       pages: write
@@ -85,3 +83,37 @@ jobs:
       - name: Publish to GitHub Pages
         id: publish
         uses: actions/deploy-pages@v5
+      - name: Verify this build on the public address
+        env:
+          SITE_URL: ${{ steps.publish.outputs.page_url }}
+        run: |
+          python3 - <<'PY'
+          import json, os, time
+          from urllib.request import Request, urlopen
+          base = os.environ["SITE_URL"].rstrip("/") + "/"
+          expected = "-".join(os.environ[k] for k in ["GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_SHA"])
+          def read(path):
+              req = Request(base + path + "?build=" + expected, headers={"Cache-Control": "no-cache"})
+              with urlopen(req, timeout=8) as response:
+                  assert response.status == 200
+                  return response.read()
+          for attempt in range(15):
+              try:
+                  info = json.loads(read("build-info.json"))
+                  assert info["id"] == expected
+                  html = read("").decode("utf-8")
+                  assert expected in html and "admissions desk." in html
+                  assert b"mountDesk" in read("assets/start.js")
+                  assert b".wd-hero" in read("assets/desk.css")
+                  feed = json.loads(read("data/opportunities.json"))
+                  assert len(feed["items"]) == info["discovered"] and len(feed["sources"]) == 6
+                  assert feed["checkedAt"] == info["checkedAt"]
+                  print("Verified public URL:", base)
+                  print(json.dumps(info))
+                  print("Source states:", [(s["id"], s["state"], s["count"]) for s in feed["sources"]])
+                  break
+              except Exception as exc:
+                  if attempt == 14: raise
+                  print("Waiting for the deployed version:", type(exc).__name__, flush=True)
+                  time.sleep(8)
+          PY
