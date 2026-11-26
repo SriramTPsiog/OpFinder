@@ -1,0 +1,59 @@
+name: Host Wafer Desk
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Render a static page for GitHub Pages
+        run: |
+          node scripts/with-app-env.mjs vite preview --host 127.0.0.1 --port 4173 &
+          for i in $(seq 1 40); do
+            curl -sf -o /tmp/index.html http://127.0.0.1:4173/ && break
+            sleep 0.5
+          done
+          test -s /tmp/index.html
+          # Project Pages are served from /<repo>/, not the domain root.
+          python3 - << 'PY'
+          from pathlib import Path
+          html = Path("/tmp/index.html").read_text(encoding="utf-8")
+          html = html.replace('href="/', 'href="./').replace('src="/', 'src="./')
+          out = Path(".vercel/output/static")
+          (out / "index.html").write_text(html, encoding="utf-8")
+          (out / "404.html").write_text(html, encoding="utf-8")
+          PY
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .vercel/output/static
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
