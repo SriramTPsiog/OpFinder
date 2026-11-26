@@ -117,3 +117,19 @@ jobs:
                   print("Waiting for the deployed version:", type(exc).__name__, flush=True)
                   time.sleep(8)
           PY
+
+  check-workspace:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+      - name: Validate the original TanStack entry point
+        run: |
+          npm install --no-audit --no-fund
+          npm run typecheck
+          npm run build
