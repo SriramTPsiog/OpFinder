@@ -52,7 +52,7 @@ export function due(x,t){const d=t.deadlines[x.id]||x.deadline;return validDay(d
 export function matching(rows,f,t,date=new Date()){
   const words=f.query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   return rows.filter(x=>{
-    const text=[x.title,x.institution,x.country,x.field,x.city,x.summary].join(" ").toLowerCase();
+    const text=[x.title,x.institution,x.country,x.field,x.city,x.summary,x.sourceId].join(" ").toLowerCase();
     return words.every(w=>text.includes(w))&&(!f.country||x.country===f.country)&&(!f.kind||x.kind===f.kind||x.kind==="both")&&(!f.source||x.sourceId===f.source)&&(!f.hideIgnored||t.status[x.id]!=="ignore")&&(!f.dated||!!due(x,t))&&(!f.seasonal||x.months?.includes(date.getMonth()+1));
   }).sort((a,b)=>{
     const order=f.sort==="deadline"?(due(a,t)||"9999").localeCompare(due(b,t)||"9999"):f.sort==="fit"?(b.fit??-1)-(a.fit??-1):f.sort==="recent"?(b.firstSeenAt||"").localeCompare(a.firstSeenAt||""):0;

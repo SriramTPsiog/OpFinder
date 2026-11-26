@@ -48,6 +48,16 @@ class ProgrammeSources(unittest.TestCase):
         ''')
         self.assertEqual([r["url"] for r in rows], ["https://mech.hku.hk/mest/"])
 
+    def test_hku_central_index_recognizes_full_time_courses_and_stable_portal_links(self):
+        link = "/tola/html/dr/frontpage/instruction.htm?Faculty_of_Engineering%3BMaster_of_Science_in_Engineering_in_Integrated_Circuits_and_Electronic_Systems%5BMSc(Eng)(ICES)%5D_%3BR413%3B%3BF="
+        engineering = "/tola/html/dr/frontpage/instruction.htm?Faculty_of_Engineering%3BMaster_of_Science_in_Engineering_in_Embedded_Systems%5BMSc(Eng)(ES)%5D_%3BR500%3B%3BF="
+        rows = rows_from("hku-ece", f'<a href="{link}">Full-time</a><a href="{link}">Part-time</a><a href="{engineering}">Full-time</a>')
+        self.assertEqual(len(rows), 2)
+        self.assertIn("portal.hku.hk", rows[0]["url"])
+        self.assertIn("(ICES)", rows[0]["title"])
+        self.assertIn("sweb.hku.hk", rows[1]["url"])
+        self.assertEqual(rows[1]["field"], "Embedded systems")
+
     def test_kth_filters_offtopic_navigation_and_untrusted_urls(self):
         rows = rows_from("kth-programmes", '''
           <a href="/en/studies/master/embedded-systems">Embedded Systems</a>

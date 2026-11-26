@@ -3,11 +3,11 @@
 import re
 from datetime import datetime
 from html.parser import HTMLParser
-from urllib.parse import parse_qsl, urlencode, urljoin, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, unquote, urlencode, urljoin, urlsplit, urlunsplit
 
 
 SOURCES = [
-    {"id": "hku-ece", "name": "HKU · Electrical and Computer Engineering", "url": "https://ece.hku.hk/study/tpg/"},
+    {"id": "hku-ece", "name": "HKU · Engineering admissions", "url": "https://sweb.hku.hk/tola/servlet/CreateCurriculumListScreen/insertForm"},
     {"id": "hku-mech", "name": "HKU · Mechanical Engineering", "url": "https://mech.hku.hk/tpg/"},
     {"id": "southampton", "name": "Southampton · Electrical and electronic engineering", "url": "https://www.southampton.ac.uk/study/subjects/electrical-electronic-engineering"},
     {"id": "kth-programmes", "name": "KTH · Master's programmes", "url": "https://www.kth.se/en/studies/master/programmes"},
@@ -25,7 +25,7 @@ INSTITUTIONS = {
 }
 
 RESULT_HOSTS = {
-    "hku-ece": {"ece.hku.hk", "portal.hku.hk", "admissions.hku.hk"},
+    "hku-ece": {"sweb.hku.hk", "portal.hku.hk", "admissions.hku.hk"},
     "hku-mech": {"mech.hku.hk", "portal.hku.hk", "admissions.hku.hk"},
     "southampton": {"www.southampton.ac.uk", "southampton.ac.uk"},
     "kth-programmes": {"www.kth.se", "kth.se"},
@@ -194,6 +194,64 @@ def scholarship_deadline(source_id, html):
         return None
 
 
+# Use the provider's programme pages as durable links when a stream has more
+# than one application entry (e.g. full-time and part-time).
+HKU_PROGRAMME_PAGES = {
+    "integrated circuits and electronic systems": "https://portal.hku.hk/tpg-admissions/programme-details?mode=0&programme=master-of-science-in-engineering-(integrated-circuits-and-electronic-systems)-engg",
+    "general stream": "https://portal.hku.hk/tpg-admissions/programme-details?mode=0&programme=master-of-science-in-engineering-(electrical-and-electronic-engineering)-general-stream-engg",
+    "power engineering stream": "https://portal.hku.hk/tpg-admissions/programme-details?mode=0&programme=master-of-science-in-engineering-(electrical-and-electronic-engineering)-power-engineering-stream-engg",
+    "communications engineering stream": "https://portal.hku.hk/tpg-admissions/programme-details?mode=0&programme=master-of-science-in-engineering-(electrical-and-electronic-engineering)-communications-engineering-stream-engg"
+}
+
+
+def hku_admissions(source, page):
+    rows = {}
+    for href, label, _ in page.links:
+        if not re.fullmatch(r"full[ -]time", label.strip(), re.I):
+            continue
+        url = urljoin(source["url"], href)
+        parts = urlsplit(url)
+        if (parts.scheme != "https" or parts.hostname != "sweb.hku.hk" or
+                parts.path.lower() != "/tola/html/dr/frontpage/instruction.htm"):
+            continue
+        descriptor = unquote(parts.query).replace("_", " ").split(";")
+        if len(descriptor) < 2 or descriptor[0].strip() != "Faculty of Engineering":
+            continue
+        title = plain(descriptor[1])
+        if not title.lower().startswith("master of science in engineering"):
+            continue
+        # MEST has its own dedicated official departmental index on this desk.
+        if "microelectronics science and technology" in title.lower():
+            continue
+        field = field_for(title)
+        if not field:
+            continue
+        short_title = plain(re.sub(r"\[MSc\(Eng\)\(([^)]+)\)\]", r" (\1) ", title, flags=re.I))
+        short_title = re.sub(r"^Master of Science in Engineering in ", "MSc(Eng) in ", short_title, flags=re.I)
+        for marker, programme_url in HKU_PROGRAMME_PAGES.items():
+            if marker in title.lower():
+                if marker.endswith("stream") and "electrical and electronic engineering" not in title.lower():
+                    continue
+                url = programme_url
+                break
+        rows[url] = {"title": short_title, "kind": "program", "field": field, "url": url,
+                     "institution": "The University of Hong Kong", "country": "Hong Kong"}
+    # Closed and future rounds can be listed as text, without an application link.
+    # Record catalogue presence only; the listing itself does not establish an open round.
+    visible = plain(" ".join(page.words))
+    visible = re.sub(r"\[\s*MSc\s*\(Eng\)\s*\([^)]+\)\s*\]", " ", visible, flags=re.I)
+    confirmed = {}
+    if re.search(r"Master of Science in Engineering in Integrated Circuits and Electronic Systems\b", visible, re.I):
+        confirmed["integrated circuits and electronic systems"] = "MSc(Eng) in Integrated Circuits and Electronic Systems (ICES)"
+    for name in re.findall(r"Electrical and Electronic Engineering\s+(General Stream|Power Engineering Stream|Communications Engineering Stream)\b", visible, re.I):
+        confirmed[name.lower()] = f"MSc(Eng) in Electrical and Electronic Engineering (EEE) – {name}"
+    for marker, title in confirmed.items():
+        url = HKU_PROGRAMME_PAGES[marker]
+        rows.setdefault(url, {"title": title, "kind": "program", "field": field_for(title), "url": url,
+                              "institution": "The University of Hong Kong", "country": "Hong Kong"})
+    return rows
+
+
 def fetch_source(source, fetch_text):
     """Fetch one permitted index. Return distinct listings; propagate retrieval errors.
 
@@ -207,8 +265,9 @@ def fetch_source(source, fetch_text):
     source_id = registered["id"]
     institution, country = INSTITUTIONS[source_id]
     scholarship = source_id in {"commonwealth", "kth-scholarships"}
-    records = {}
-    for href, label, heading in IndexPage(fetch_text(registered["url"])).links:
+    page = IndexPage(fetch_text(registered["url"]))
+    records = hku_admissions(registered, page) if source_id == "hku-ece" else {}
+    for href, label, heading in page.links:
         url = official_url(registered, href)
         if not url or url in records:
             continue

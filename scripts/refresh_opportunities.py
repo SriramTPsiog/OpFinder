@@ -138,6 +138,12 @@ def main():
     if not args.baseline_only:
         now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
         data = refresh(data, now, lambda source: fetch_source(source, reader_for(source)))
+    reviewed = {row["id"]: row for row in seed["items"] if row.get("summary")}
+    for item in data["items"]:
+        entry = reviewed.get(item["id"])
+        if entry and item.get("lastSeenAt") and item.get("summary") != entry["summary"]:
+            item["reviewedNote"] = entry["summary"]
+            item["noteReviewedOn"] = seed["reviewedOn"]
     save(args.output, data)
     for source in data["sources"]:
         print(f'{source["name"]}: {source["count"]} listings ({source["state"]})')

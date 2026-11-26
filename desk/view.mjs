@@ -41,7 +41,7 @@ function card(x,s){
   return `<article class="wd-card"><div class="wd-cardtop"><div class="wd-tags">${tag(KINDS[x.kind],x.kind==="scholarship"?"peach":"green")}${badge}<span class="wd-country">${h(x.country)}</span></div>
     <button type="button" class="wd-save${saved?" saved":""}" data-act="save" data-id="${h(x.id)}" aria-label="${h((saved?"View application for ":"Shortlist ")+x.title)}"><span aria-hidden="true">${saved?"✓":"+"}</span> ${saved?"Saved":"Shortlist"}</button></div>
     <details data-detail="${h(x.id)}"${s.opened.has(x.id)?" open":""}><summary><span class="wd-summary"><strong>${h(x.title)}</strong><span class="wd-school">${h(x.institution)}${x.city?" · "+h(x.city):""}</span></span><span class="wd-chevron" aria-hidden="true"></span></summary>
-    <div class="wd-expanded">${x.summary?`<p>${h(x.summary)}</p>`:""}${x.why?`<p>${h(x.why)}</p>`:""}${x.risks?`<p class="wd-risk"><b>Application considerations</b> ${h(x.risks)}</p>`:""}
+    <div class="wd-expanded">${x.summary?`<p>${h(x.summary)}</p>`:""}${x.reviewedNote?`<p><b>Reviewed ${h(dateLabel(x.noteReviewedOn))}</b> · ${h(x.reviewedNote)}</p>`:""}${x.why?`<p>${h(x.why)}</p>`:""}${x.risks?`<p class="wd-risk"><b>Application considerations</b> ${h(x.risks)}</p>`:""}
     <dl class="wd-facts">${fact("Usual application window",x.window)}${fact("Funding",x.funding)}${fact("Intake",x.intake)}${fact("Academic fit",grades[x.grade])}
     ${fact("Source",p?.name)}${fact("First found by scanner",x.firstSeenAt&&dateLabel(x.firstSeenAt))}${fact("Last seen on source",x.lastSeenAt&&dateLabel(x.lastSeenAt))}
     ${x.sourceId?fact("Provider deadline",x.deadline?dateLabel(x.deadline):"Check the official page for round dates."):""}</dl>
